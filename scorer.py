@@ -1,26 +1,26 @@
-"""Phase 2 — AI scorer. Uses Claude API to evaluate and rank clips."""
+"""Phase 2 — AI scorer. Uses OpenAI GPT-4o to evaluate and rank clips."""
 import json
 import logging
 
-import anthropic
+from openai import OpenAI
 
 import config
 
 logger = logging.getLogger("scorer")
 
-SCORING_PROMPT = """Oceń potencjał viralowy tego klipu do kompilacji YouTube (funny fails).
-Tytuł: {title}
+SCORING_PROMPT = """Rate the viral potential of this clip for a YouTube compilation (funny fails).
+Title: {title}
 Subreddit: r/{subreddit}
-Upvoty: {score}
-Komentarze: {comments}
-Długość: {duration}s
+Upvotes: {score}
+Comments: {comments}
+Duration: {duration}s
 
-Odpowiedz TYLKO JSONem bez żadnego dodatkowego tekstu:
-{{"score": 1-10, "category": "fail|animal|cringe|unexpected|wholesome", "reason": "1 zdanie"}}"""
+Respond ONLY with JSON, no extra text:
+{{"score": 1-10, "category": "fail|animal|cringe|unexpected|wholesome", "reason": "1 sentence"}}"""
 
 
-def score_clip(client: anthropic.Anthropic, clip: dict) -> dict:
-    """Score a single clip using Claude API."""
+def score_clip(client: OpenAI, clip: dict) -> dict:
+    """Score a single clip using OpenAI API."""
     prompt = SCORING_PROMPT.format(
         title=clip["title"],
         subreddit=clip["subreddit"],
@@ -30,12 +30,12 @@ def score_clip(client: anthropic.Anthropic, clip: dict) -> dict:
     )
 
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             max_tokens=150,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = response.content[0].text.strip()
+        text = response.choices[0].message.content.strip()
         result = json.loads(text)
         return {
             "ai_score": int(result.get("score", 5)),
@@ -49,7 +49,7 @@ def score_clip(client: anthropic.Anthropic, clip: dict) -> dict:
 
 def run(candidates: list[dict]) -> list[dict]:
     """Score all candidates and return top N ranked."""
-    client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    client = OpenAI(api_key=config.OPENAI_API_KEY)
 
     # Normalize reddit scores for ranking
     max_score = max(c["score"] for c in candidates) if candidates else 1

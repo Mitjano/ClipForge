@@ -10,8 +10,8 @@ REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
 REDDIT_SECRET = os.getenv("REDDIT_SECRET")
 REDDIT_USER_AGENT = os.getenv("REDDIT_USER_AGENT", "CompilationBot/1.0")
 
-# Anthropic
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+# OpenAI
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # YouTube
 YOUTUBE_CREDENTIALS_PATH = os.getenv("YOUTUBE_CREDENTIALS_PATH", "/app/credentials.json")

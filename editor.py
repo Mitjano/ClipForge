@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-import anthropic
+from openai import OpenAI
 
 import config
 
@@ -52,7 +52,7 @@ def generate_title_and_metadata(clips: list[dict]) -> dict:
     categories = [c.get("category", "unknown") for c in clips]
     top_category = max(set(categories), key=categories.count)
 
-    client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    client = OpenAI(api_key=config.OPENAI_API_KEY)
     prompt = f"""Generate YouTube metadata for a "Top {len(clips)} funny fails" compilation.
 Top category: {top_category}
 Clip titles: {', '.join(c['title'][:40] for c in clips[:5])}
@@ -61,12 +61,12 @@ Respond ONLY with JSON:
 {{"title": "catchy title under 70 chars with emoji", "description": "500 char description with hashtags", "tags": ["tag1", "tag2", ...]}}"""
 
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             max_tokens=300,
             messages=[{"role": "user", "content": prompt}],
         )
-        return json.loads(response.content[0].text.strip())
+        return json.loads(response.choices[0].message.content.strip())
     except Exception as e:
         logger.warning(f"Metadata generation failed: {e}")
         return {
