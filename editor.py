@@ -13,21 +13,41 @@ logger = logging.getLogger("editor")
 
 
 def generate_countdown_plate(number: int, category: str, out_path: Path):
-    """Generate a 2-second countdown plate image via FFmpeg."""
-    text = f"#{number}"
-    sub_text = category.upper() if category else ""
-    cmd = [
-        "ffmpeg", "-y", "-f", "lavfi",
-        "-i", f"color=c=black:s=1920x1080:d=2",
-        "-vf", (
-            f"drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
-            f"text='{text}':fontsize=200:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2-60,"
-            f"drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:"
-            f"text='{sub_text}':fontsize=48:fontcolor=gray:x=(w-text_w)/2:y=(h-text_h)/2+100"
-        ),
-        "-c:v", "libx264", "-t", "2", "-pix_fmt", "yuv420p",
-        str(out_path)
-    ]
+    """Generate a 2-second countdown plate with number overlay via FFmpeg."""
+    transition_clip = config.ASSETS_DIR / "transition.mp4"
+
+    if transition_clip.exists():
+        # Use custom transition clip (e.g. meme cat) with number overlay
+        cmd = [
+            "ffmpeg", "-y", "-i", str(transition_clip),
+            "-vf", (
+                f"scale=1920:1080:force_original_aspect_ratio=decrease,"
+                f"pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black,"
+                f"drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
+                f"text='#{number}':fontsize=180:fontcolor=white:borderw=4:bordercolor=black:"
+                f"x=(w-text_w)/2:y=50"
+            ),
+            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "128k",
+            "-t", "3",
+            str(out_path)
+        ]
+    else:
+        # Fallback: simple black plate with number
+        text = f"#{number}"
+        sub_text = category.upper() if category else ""
+        cmd = [
+            "ffmpeg", "-y", "-f", "lavfi",
+            "-i", f"color=c=black:s=1920x1080:d=2",
+            "-vf", (
+                f"drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
+                f"text='{text}':fontsize=200:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2-60,"
+                f"drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:"
+                f"text='{sub_text}':fontsize=48:fontcolor=gray:x=(w-text_w)/2:y=(h-text_h)/2+100"
+            ),
+            "-c:v", "libx264", "-t", "2", "-pix_fmt", "yuv420p",
+            str(out_path)
+        ]
     subprocess.run(cmd, capture_output=True, timeout=30)
 
 

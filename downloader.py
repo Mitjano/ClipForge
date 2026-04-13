@@ -32,14 +32,12 @@ def download_clip(clip: dict) -> str | None:
         },
     }
 
-    # Try video_url first (direct v.redd.it), then reddit post URL
-    urls_to_try = []
+    # Reddit post URL first (yt-dlp merges DASH audio+video automatically)
+    # Direct v.redd.it fallback URLs are video-only (no audio!)
+    reddit_url = f"https://www.reddit.com/r/{clip.get('subreddit', 'all')}/comments/{clip['id']}/"
+    urls_to_try = [reddit_url, clip["url"]]
     if clip.get("video_url"):
         urls_to_try.append(clip["video_url"])
-    urls_to_try.append(clip["url"])
-    # Also try full reddit post page for yt-dlp reddit extractor
-    reddit_url = f"https://www.reddit.com/r/{clip.get('subreddit', 'all')}/comments/{clip['id']}/"
-    urls_to_try.append(reddit_url)
 
     try:
         for url in urls_to_try:
