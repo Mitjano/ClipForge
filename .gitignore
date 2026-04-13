@@ -1,0 +1,7 @@
+renders/
+music/*.mp3
+music/*.wav
+__pycache__/
+*.pyc
+.DS_Store
+.env

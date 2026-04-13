@@ -1,0 +1,15 @@
+mandelbulber:
+  binary: /Users/mch/Documents/mandelbulber2/mandelbulber2/qmake/mandelbulber2.app/Contents/MacOS/mandelbulber2
+  examples: /Users/mch/Documents/mandelbulber2/mandelbulber2/qmake/mandelbulber2.app/Contents/Resources/examples
+
+blender:
+  binary: /Applications/Blender.app/Contents/MacOS/Blender
+
+render:
+  resolution: 1080x1080
+  fps: 30
+  format: png
+
+output:
+  renders_dir: renders
+  music_dir: music
