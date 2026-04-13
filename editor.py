@@ -66,7 +66,11 @@ Respond ONLY with JSON:
             max_tokens=300,
             messages=[{"role": "user", "content": prompt}],
         )
-        return json.loads(response.choices[0].message.content.strip())
+        text = response.choices[0].message.content.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            text = text.rsplit("```", 1)[0].strip()
+        return json.loads(text)
     except Exception as e:
         logger.warning(f"Metadata generation failed: {e}")
         return {

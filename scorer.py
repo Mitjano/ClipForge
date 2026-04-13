@@ -36,6 +36,10 @@ def score_clip(client: OpenAI, clip: dict) -> dict:
             messages=[{"role": "user", "content": prompt}],
         )
         text = response.choices[0].message.content.strip()
+        # Strip markdown code fences if present
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            text = text.rsplit("```", 1)[0].strip()
         result = json.loads(text)
         return {
             "ai_score": int(result.get("score", 5)),
