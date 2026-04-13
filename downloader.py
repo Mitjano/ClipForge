@@ -27,11 +27,29 @@ def download_clip(clip: dict) -> str | None:
         "no_warnings": True,
         "socket_timeout": 30,
         "retries": 3,
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
     }
 
+    # Try video_url first (direct v.redd.it), then reddit post URL
+    urls_to_try = []
+    if clip.get("video_url"):
+        urls_to_try.append(clip["video_url"])
+    urls_to_try.append(clip["url"])
+    # Also try full reddit post page for yt-dlp reddit extractor
+    reddit_url = f"https://www.reddit.com/r/{clip.get('subreddit', 'all')}/comments/{clip['id']}/"
+    urls_to_try.append(reddit_url)
+
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([clip["url"]])
+        for url in urls_to_try:
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+                if expected_path.exists() and expected_path.stat().st_size > 0:
+                    break
+            except Exception:
+                continue
 
         if expected_path.exists() and expected_path.stat().st_size > 0:
             logger.info(f"  Downloaded: {clip['id']} ({expected_path.stat().st_size // 1024}KB)")
